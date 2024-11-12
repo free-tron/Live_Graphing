@@ -1,0 +1,101 @@
+const ctx = document.getElementById('myChart').getContext('2d');
+
+const myChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: [],
+        datasets: [{
+            label: 'Pints Available',
+            data: [],
+            backgroundColor: [],
+            borderWidth: 1,
+            borderColor: 'black' // You can choose to add a border for visual distinction
+        }]
+    },
+    options: {
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        },
+        plugins: {
+            beforeDraw: (chart) => {
+                const ctx = chart.ctx;
+                const dataset = chart.data.datasets[0];
+                const meta = chart.getDatasetMeta(0);
+                
+                // Clear the canvas before redrawing
+                ctx.clearRect(0, 0, chart.width, chart.height);
+                
+                // Iterate through each bar
+                meta.data.forEach((bar, index) => {
+                    const { x, y } = bar.getProps(['x', 'y'], true);
+                    const width = bar.width - 4; // Adjust as necessary
+                    const height = bar.getProps('height', true);
+                    
+                    ctx.fillStyle = dataset.backgroundColor[index];
+
+                    // Drawing the custom pint shape
+                    ctx.beginPath();
+                    // Draw the rounded top
+                    ctx.moveTo(x - width / 2, y - height);
+                    ctx.lineTo(x + width / 2, y - height);
+                    ctx.lineTo(x + width / 3, y - height + 10); // Rounded edge
+                    ctx.lineTo(x - width / 3, y - height + 10); // Rounded edge
+                    ctx.closePath();
+                    ctx.fill(); // Fill the top of the glass
+
+                    // Draw body of the pint glass
+                    ctx.fillRect(x - width / 2, y - height, width, height);
+                });
+            },
+        },
+    }
+});
+
+// CONFIGS
+Chart.defaults.font.size = 16;
+Chart.defaults.font.weight = 'bolder';
+Chart.defaults.color = '#000';
+
+// Define a color mapping for each label
+const colorMapping = {
+    "ATwooneFIVE": "hsl(200, 100%, 50%)",
+    "SixONEThree": "hsl(100, 100%, 50%)",
+    "Label3": "hsl(50, 100%, 50%)",
+    // Add more labels and colors as necessary
+};
+
+// Function to fetch CSV data and update the chart
+async function fetchData() {
+    const response = await fetch('data.csv'); 
+    const data = await response.text();
+
+    const rows = data.split('\n').slice(1); // Skip header
+    const labels = [];
+    const values = [];
+    const colors = [];
+
+    rows.forEach(row => {
+        const cols = row.split(',');
+        if (cols.length < 2) return; // Check if there's at least a label and a value
+        const label = cols[0]; // x-axis label
+        const value = parseInt(cols[1]); // Ensure data is an integer
+        labels.push(label);
+        values.push(value);
+
+        // Check if label exists in colorMapping, otherwise use a default color
+        const color = colorMapping[label] || 'hsl(0, 100%, 50%)'; // Default to red
+        colors.push(color);
+    });
+
+    // Update chart data
+    myChart.data.labels = labels;
+    myChart.data.datasets[0].data = values;
+    myChart.data.datasets[0].backgroundColor = colors;
+    console.log('Updated Data:', labels, values, colors); // Debugging line
+    myChart.update();
+}
+
+// Fetch data every 500 ms
+setInterval(fetchData, 500);

@@ -1,0 +1,45 @@
+const ctx = document.getElementById('myChart').getContext('2d');
+const myChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: [],
+        datasets: [{
+            label: 'Pints Available',
+            data: [],
+            backgroundColor: [],
+        }]
+    },
+    options: {
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+
+// Function to fetch CSV data and update chart
+async function fetchData() {
+    const response = await fetch('data.csv'); // Update with your CSV file path
+    const data = await response.text();
+
+    const rows = data.split('\n').slice(1); // Skip header
+    const labels = [];
+    const values = [];
+    const colors = [];
+
+    rows.forEach(row => {
+        const cols = row.split(',');
+        labels.push(cols[0]); // x-axis label
+        values.push(parseInt(cols[1])); // bar value
+        colors.push(`hsl(${Math.random() * 3600}, 100%, 50%)`); // Random color
+    });
+
+    // Update chart data
+    myChart.data.labels = labels;
+    myChart.data.datasets[0].data = values;
+    myChart.data.datasets[0].backgroundColor = colors;
+    myChart.update();
+}
+
+setInterval(fetchData, 500); // Fetch new data every 5 seconds
