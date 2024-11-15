@@ -5,7 +5,7 @@ const myChart = new Chart(ctx, {
     data: {
         labels: [],
         datasets: [{
-            label: 'Pints Available',
+            label: 'Half Pints Available',
             data: [],
             backgroundColor: 'hsl(45, 100%, 80%)', // Use a single color for all bars
             borderWidth: 4,
